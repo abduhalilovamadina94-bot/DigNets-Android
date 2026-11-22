@@ -1,0 +1,62 @@
+name: DigNets Android build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - name: Joy bo'shatish
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          docker system prune -af || true
+          df -h
+
+      - uses: actions/checkout@v4
+
+      - name: Telegram API kalitlarini qo'yish (GitHub Secrets'dan)
+        env:
+          APP_ID: ${{ secrets.TG_API_ID }}
+          APP_HASH: ${{ secrets.TG_API_HASH }}
+        run: |
+          if [ -z "$APP_ID" ] || [ -z "$APP_HASH" ]; then echo "::error::TG_API_ID va TG_API_HASH secrets qo'shilmagan"; exit 1; fi
+          sed -i "s/public static int APP_ID = 0;.*/public static int APP_ID = ${APP_ID};/" TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java
+          sed -i "s/public static String APP_HASH = \"\";.*/public static String APP_HASH = \"${APP_HASH}\";/" TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java
+
+      - name: Imzo kaliti (bo'lsa)
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > TMessagesProj/config/release.keystore
+            sed -i "s/^RELEASE_STORE_PASSWORD=.*/RELEASE_STORE_PASSWORD=${KS_PASS}/; s/^RELEASE_KEY_ALIAS=.*/RELEASE_KEY_ALIAS=${KEY_ALIAS}/; s/^RELEASE_KEY_PASSWORD=.*/RELEASE_KEY_PASSWORD=${KEY_PASS}/" gradle.properties
+            echo "O'z imzo kalitingiz ishlatildi"
+          else
+            echo "::warning::KEYSTORE_BASE64 yo'q — sinov uchun standart kalit bilan imzolanadi (Google Play uchun yaramaydi)"
+          fi
+
+      - name: Yig'ish muhitini tayyorlash (Docker)
+        run: docker build -t dignets-build .
+
+      - name: APK va AAB yig'ish
+        run: |
+          docker run --rm -v "$PWD":/home/source dignets-build bash -c '
+            tar -C /home/source --exclude=./.git --exclude=build --exclude=.gradle -cf - . | tar -C /home/gradle -xf - &&
+            cd /home/gradle &&
+            gradle --no-daemon :TMessagesProj_App:assembleAfatRelease :TMessagesProj_App:bundleBundleAfatRelease --stacktrace &&
+            mkdir -p /home/source/out &&
+            find TMessagesProj_App/build/outputs -name "*.apk" -exec cp {} /home/source/out/ \; &&
+            find TMessagesProj_App/build/outputs -name "*.aab" -exec cp {} /home/source/out/ \;'
+          ls -la out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DigNets
+          path: out/

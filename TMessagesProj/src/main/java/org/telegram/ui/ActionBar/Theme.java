@@ -1803,7 +1803,13 @@ public class Theme {
                 }
 
                 //override default themes
-                if (isHome(themeAccent) && name.equals("Dark Blue") || name.equals("Night")) {
+                if (isHome(themeAccent) && name.equals("Dark Blue")) {
+                    // DigNets: qizil-qora brend ranglari
+                    themeAccent.myMessagesAccentColor = 0xffD11A2A;
+                    themeAccent.myMessagesGradientAccentColor1 = 0xffE53945;
+                    themeAccent.myMessagesGradientAccentColor2 = 0xffB3121F;
+                    themeAccent.myMessagesGradientAccentColor3 = 0xff7A0E18;
+                } else if (name.equals("Night")) {
                     themeAccent.myMessagesAccentColor = 0xff258DE5;
                     themeAccent.myMessagesGradientAccentColor1 = 0xff4272DF;
                     themeAccent.myMessagesGradientAccentColor2 = 0xff8146D7;
@@ -4010,7 +4016,7 @@ public class Theme {
         themeInfo.previewOutColor = 0xff82a8e3;
         themeInfo.sortIndex = 3;
         themeInfo.setAccentColorOptions(
-                new int[]    {                    0xFF927BD4,                    0xFF698AFB,                    0xFF23A7F0,                    0xFF7B71D1,                    0xFF69B955,                    0xFF2990EA,                    0xFF7082E9,                    0xFF66BAED,                    0xff3685fa,                    0xff46c8ed,                    0xff64AC5F,                    0xffeb7cb1,                    0xffee902a,                    0xffa281f0,                    0xffd34324,                    0xffeebd34,                    0xff7f8fab,                    0xff3581e3 },
+                new int[]    {                    0xFF927BD4,                    0xFF698AFB,                    0xFF23A7F0,                    0xFF7B71D1,                    0xFF69B955,                    0xFF2990EA,                    0xFF7082E9,                    0xFF66BAED,                    0xffE53945,                    0xff46c8ed,                    0xff64AC5F,                    0xffeb7cb1,                    0xffee902a,                    0xffa281f0,                    0xffd34324,                    0xffeebd34,                    0xff7f8fab,                    0xff3581e3 },
                 new int[]    {                    0xFF9D5C99,                    0xFF635545,                    0xFF31818B,                    0xFFAD6426,                    0xFF4A7034,                    0xFF335D82,                    0xFF36576F,                    0xFF597563,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000 },
                 new int[]    {                    0xFF604DA8,                    0xFF685D4C,                    0xFF1B6080,                    0xFF99354E,                    0xFF275D3B,                    0xFF317A98,                    0xFF376E87,                    0xFF5E7370,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000,                    0x00000000 },
                 new int[]    {                    0xFF271e2e,                    0xFF171a22,                    0xFF071e1f,                    0xFF100f13,                    0xFF0e1811,                    0xFF0b131c,                    0xFF1d2129,                    0xFF202c2a,                    0xff0e141a,                    0xff162325,                    0xff161d15,                    0xff24191e,                    0xff251b13,                    0xff1f1d29,                    0xff22160e,                    0xff272115,                    0xff171a1b,                    0xff0e141a },
@@ -4363,7 +4369,10 @@ public class Theme {
             throw new RuntimeException(e);
         }
         if (applyingTheme == null) {
-            applyingTheme = defaultTheme;
+            // DigNets: birinchi ishga tushishda qorong'i qizil mavzu
+            ThemeInfo dignetsTheme = themesDict.get("Dark Blue");
+            applyingTheme = dignetsTheme != null ? dignetsTheme : defaultTheme;
+            currentDayTheme = applyingTheme;
         } else {
             currentDayTheme = applyingTheme;
         }
